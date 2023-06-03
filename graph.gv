@@ -1,0 +1,33 @@
+digraph wanikani_mnemonics {
+    repo -> subjects_json
+    repo -> mnemonic_images_json
+
+    tsurukame -> mnemonic_text -> bing -> temp_saved_image -> discord_submission
+    bing -> image_prompt -> discord_submission
+    tsurukame -> user_note_discord_submission -> discord_submission
+    discord_submission -> community_primary_images
+    discord_submission -> community_uploads
+
+    community_primary_images -> mnemonic_images_json
+    community_uploads -> mnemonic_images_json
+
+    bing -> bing_image_url -> pending_images_jsonl
+    tsurukame -> user_note_image_context -> pending_images_jsonl
+
+    pending_images_jsonl -> image_prompt -> mnemonic_images_json
+    pending_images_jsonl -> personal_blob_store -> mnemonic_images_json
+    pending_images_jsonl -> mnemonic_images_json
+    mnemonic_images_json -> discord_submission
+
+    mnemonic_images_json -> user_note_mnemonic_image_url
+    mnemonic_images_json -> user_note_icloud_image_search
+    mnemonic_images_json -> icloud_image
+    icloud_image -> user_note_icloud_image_search
+
+    subjects_json -> mnemonic_images_stats
+    mnemonic_images_json -> mnemonic_images_stats
+
+    subjects_json -> user_note_discord_submission
+    subjects_json -> user_note_image_context
+    subjects_json -> mnemonic_images_json
+}
