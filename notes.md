@@ -76,6 +76,7 @@ Extending WaniKani's subject JSON representation:
 6. Share Bing image URL to {Shortcut? To-Do?} with info {level}.{primary}.{r|k|v}{m|r}
 
 ## Desired flow
+TODO - need to be able to extract image from Bing image URL to automate this flow, also still needs Discord upload in post-process
 1. Select mnemonic text for prompt
 2. Share to shortcut
    1. Edit prompt text if needed
@@ -88,7 +89,6 @@ Extending WaniKani's subject JSON representation:
    2. Saves to a file in iCloud for processing
 
 ## Desired flow - direct to Discord
-Note - this approach is ideal only if it is possible to later grab content from the Discord channel programatically
 1. Select mnemonic text for prompt
 2. Share to shortcut
    1. Edit prompt text if needed
@@ -96,8 +96,21 @@ Note - this approach is ideal only if it is possible to later grab content from 
 3. Refine prompt as needed to get desired image
 4. Save image
 5. Copy prompt text
-6. In Tsurukame, copy Discord submission text (meaning or reading user note)
-7. In Discord submission channel, paste submission text
+6. In Tsurukame, share Discord submission text (meaning or reading user note) to shortcut
+   1. Get prompt text from clipboard
+   2. Append prompt to Discord submission text
+   3. Copy to clipboard
+   4. Open Discord app
+7. In Discord submission channel, paste submission text and add image
+8. Copy image upload URL and paste as user note in Tsurukame (with 'image ' prefix)
+
+## Deferred flow
+1. In Tsurukame, share Discord submission text to To-Do (should include URL to WaniKani subject page)
+2. From To-Do, open WaniKani subject page
+3. Select mnemonic text for prompt
+4. (On iOS) Share to shortcut
+   (On PC) Open bing.com/create and paste mnemonic text
+5. Continue from step 3 of direct to Discord flow
 
 # Review flow - review images
 ## Current flow (images in iCloud)
@@ -106,4 +119,9 @@ Note - this approach is ideal only if it is possible to later grab content from 
    - Opens iCloud images with search on {primary}.{r|k|v} -- may find duplicates across/within levels (this may not be a bad thing)
 
 ## Desired flow using user notes
-1. Meaning/reading notes with image links - select link and 'Open Link'
+- Meaning/reading notes with image links - select link and 'Open Link' (format 'image {url}')
+- Or select link and share to shortcut to search iCloud
+  1. Extract subjectId from link
+  2. Search Files for 'mnemonic-{subjectId}'
+- Prepend 'Primary ' to identify preferred image
+- Delete unneeded image link notes
