@@ -219,8 +219,17 @@ TODO - need to be able to extract image from Bing image URL to automate this flo
 # Execution plan
 1. (DONE) Add existing submissions to WaniKani user notes ('image {url}')
 2. Upload existing images to Discord and add to WaniKani user notes ('image {url}')
-   - one-off script? how many images are there?
-   - migrate images from 'pending-upload' to 'archived' folders under iCloud/wanikani-mnemonics/
+   - script:
+     1. loop over images in pending-upload
+     2. find corresponding subject data
+     3. output Discord submission command: ```/submit char:towel type:Radical source:DALL-E 2 prompt:<don't remember> mnemonictype:Meaning image:```
+     4. output WaniKani item URL
+   - manual (for each image):
+     1. copy Discord submission command from script and open WaniKani item URL
+     2. drop image and submit
+     3. move image to 'archived' folder
+     4. copy image upload URL and paste into WaniKani note (with 'image ' prefix)
+     5. close WaniKani item page
 3. Script - Import community primary images
 4. Script - Sync user notes with repo data
 3. Script - Add creation user notes
