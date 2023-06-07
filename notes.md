@@ -219,7 +219,7 @@ TODO - need to be able to extract image from Bing image URL to automate this flo
 # Execution plan
 1. (DONE) Add existing submissions to WaniKani user notes ('image {url}')
 2. Upload existing images to Discord and add to WaniKani user notes ('image {url}')
-   - script:
+   - (DONE) script:
      1. loop over images in pending-upload
      2. find corresponding subject data
      3. output Discord submission command: ```/submit char:towel type:Radical source:DALL-E 2 prompt:<don't remember> mnemonictype:Meaning image:```
