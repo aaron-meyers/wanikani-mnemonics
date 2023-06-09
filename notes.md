@@ -241,3 +241,4 @@ TODO - need to be able to extract image from Bing image URL to automate this flo
 6. Script - Export/Sync images to iCloud
 7. Shortcut - Search iCloud for image (from image URL text)
 8. Script - Generate statistics
+9. Script - Update WaniKani AI mnemonics user script to prefer image from notes if present
