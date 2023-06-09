@@ -226,11 +226,13 @@ TODO - need to be able to extract image from Bing image URL to automate this flo
      4. output WaniKani item URL
    - manual (for each image):
      1. copy Discord submission command from script and open WaniKani item URL
-     2. drop image and submit
+     2. paste command in Discord, drop image and submit
      3. move image to 'archived' folder
      4. copy image upload URL and paste into WaniKani note (with 'image ' prefix)
      5. close WaniKani item page
 3. Script - Import community primary images
+    1. Scrape radical/kanji completion data from Discord channels using ```/show completed``` command
+    2. Parse completion text data
 4. Script - Sync user notes with repo data
 3. Script - Add creation user notes
 4. Shortcut - Discord show submissions
