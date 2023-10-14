@@ -12,6 +12,11 @@ param(
     [Switch]
     $Formatted
 )
+
+if (-not $Path) {
+    $Path = Join-Path (Split-Path $PSScriptRoot -Parent) 'data'
+}
+
 $apikey = $env:WANIKANI_API_KEY
 if (-not $apikey) {
     throw 'API key not found, set $env:WANIKANI_API_KEY first'
@@ -32,15 +37,11 @@ foreach ($resource in $Resources) {
         Write-Host "Downloaded $($data.Count) $resource so far, next URL: $url"
     }
     if ($Formatted) {
-        if (-not $Path) {
-            $Path = "$resource.formatted.json"
-        }
-        $data | ConvertTo-Json -Depth 99 | Out-File $Path
+        $resourcePath = Join-Path $Path "$resource.formatted.json"
+        $data | ConvertTo-Json -Depth 99 | Out-File $resourcePath
     } else {
-        if (-not $Path) {
-            $Path = "$resource.jsonl"
-        }
-        $data | Foreach-Object { $_ | ConvertTo-Json -Depth 99 -Compress } | Out-File $Path
+        $resourcePath = Join-Path $Path "$resource.jsonl"
+        $data | Foreach-Object { $_ | ConvertTo-Json -Depth 99 -Compress } | Out-File $resourcePath
     }
-    Write-Host "Wrote $resource to $Path"
+    Write-Host "Wrote $resource to $resourcePath"
 }
