@@ -218,27 +218,27 @@ TODO - need to be able to extract image from Bing image URL to automate this flo
 
 # Execution plan
 1. (DONE) Add existing submissions to WaniKani user notes ('image {url}')
-2. Upload existing images to Discord and add to WaniKani user notes ('image {url}')
+2. (DONE) Upload existing images to Discord and add to WaniKani user notes ('image {url}')
    - (DONE) script:
      1. loop over images in pending-upload
      2. find corresponding subject data
      3. output Discord submission command: ```/submit char:towel type:Radical source:DALL-E 2 prompt:<don't remember> mnemonictype:Meaning image:```
      4. output WaniKani item URL
-   - manual (for each image):
+   - (DONE) manual (for each image):
      1. copy Discord submission command from script and open WaniKani item URL
      2. paste command in Discord, drop image and submit
      3. move image to 'archived' folder
      4. copy image upload URL and paste into WaniKani note (with 'image ' prefix)
      5. close WaniKani item page
-3. Script - Import community primary images
+3. (DONE) Shortcut - Discord show submissions
+4. (DONE) Shortcut - Bing Image Creator
+5. (DONE) Shortcut - Discord submit image
+6. Script - Import community primary images
     1. Scrape radical/kanji completion data from Discord channels using ```/show completed``` command
     2. Parse completion text data
-4. Script - Sync user notes with repo data
-3. Script - Add creation user notes
-4. Shortcut - Discord show submissions
-5. Shortcut - Bing Image Creator
-5. Shortcut - Discord submit image
-6. Script - Export/Sync images to iCloud
-7. Shortcut - Search iCloud for image (from image URL text)
-8. Script - Generate statistics
-9. Script - Update WaniKani AI mnemonics user script to prefer image from notes if present
+7. Script - Sync user notes with repo data
+8. Script - Add creation user notes
+9. Script - Export/Sync images to iCloud
+10. Shortcut - Search iCloud for image (from image URL text)
+11. Script - Generate statistics
+12. Script - Update WaniKani AI mnemonics user script to prefer image from notes if present
