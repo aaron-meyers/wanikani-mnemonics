@@ -10,7 +10,11 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateSet('Meaning','Reading','Both')]
     [String]
-    $MnemonicType
+    $MnemonicType,
+
+    [Parameter()]
+    [Switch]
+    $ToClipboard
 )
 
 $discordTypeMap = @{
@@ -26,4 +30,10 @@ $subject = $subjects |
 $char = ($subject.object -eq 'radical' ? $subject.data.slug : $subject.data.characters)
 $discordType = $discordTypeMap[$subject.object]
 
-Write-Output "/submit char:$char type:$discordType source:DALL-E 2 prompt:$Prompt mnemonictype:$MnemonicType image:"
+$s = "/submit char:$char type:$discordType source:DALL-E 2 prompt:$Prompt mnemonictype:$MnemonicType image:"
+
+if ($ToClipboard) {
+    $s | Set-Clipboard
+} else {
+    return $s
+}
