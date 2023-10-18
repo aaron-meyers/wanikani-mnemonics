@@ -2,7 +2,7 @@ param(
     [Parameter()]
     [ValidateSet('subjects','study_materials')]
     [String[]]
-    $Resources = @('subjects','study_materials'),
+    $ResourceList = @('subjects','study_materials'),
 
     [Parameter()]
     [String]
@@ -22,7 +22,7 @@ if (-not $apikey) {
     throw 'API key not found, set $env:WANIKANI_API_KEY first'
 }
 
-foreach ($resource in $Resources) {
+foreach ($resource in $ResourceList) {
     $headers = @{
         'Authorization' = "Bearer $env:WANIKANI_API_KEY"
         'Wanikani-Revision' = '20170710'

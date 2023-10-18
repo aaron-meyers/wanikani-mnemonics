@@ -29,7 +29,7 @@ if ($Fast) {
     $slug = $urlParts[$urlParts.length - 1]
     $search = [Uri]::UnescapeDataString($slug)
 } else {
-    $subjects = & "$PSScriptRoot/GetSubjects.ps1"
+    $subjects = & "$PSScriptRoot/GetWaniKaniResource.ps1" -Resource subjects
 
     $subject = $subjects |
         Where-Object { $_.data.document_url -eq $SubjectUrl }

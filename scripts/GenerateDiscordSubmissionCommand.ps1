@@ -23,7 +23,7 @@ $discordTypeMap = @{
     'vocabulary' = 'Vocab'
 }
 
-$subjects = & "$PSScriptRoot/GetSubjects.ps1"
+$subjects = & "$PSScriptRoot/GetWaniKaniResource.ps1" -Resource subjects
 
 $subject = $subjects |
     Where-Object { $_.data.document_url -eq $SubjectUrl }
