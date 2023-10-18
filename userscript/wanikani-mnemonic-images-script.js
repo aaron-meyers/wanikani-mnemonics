@@ -36,12 +36,41 @@
 	}
 
 	function getUrl(wkId, type, mnemonic, thumb = false) {
-		return 'https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png');
+        const urlFromNote = getUrlFromNote(mnemonic);
+        return urlFromNote ? urlFromNote :
+		    'https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png');
 	}
 
+    function getUrlFromNote(mnemonic) {
+        var noteElementName = null;
+        switch (mnemonic) {
+            case 'Meaning':
+                noteElementName = 'user_meaning_note';
+                break;
+            case 'Reading':
+                noteElementName = 'user_reading_note';
+                break;
+        }
+        if (!noteElementName) {
+            return null;
+        }
+
+        const note = window.document.getElementById(noteElementName).innerText;
+        if (!note) {
+            return null;
+        }
+
+        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/;
+        const m = note.match(imageUrlRegex);
+        return m ? m[0] : null;
+    }
+
 	function init() {
-		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
-		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
+        // wait to init until turbo-frame elements are loaded
+        document.addEventListener("turbo:load", async (event) => {
+            wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
+            wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
+        });
 	}
 
 	async function artworkSection(subjectId, type, mnemonic, page) {
