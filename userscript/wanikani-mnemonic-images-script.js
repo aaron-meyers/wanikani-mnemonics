@@ -81,31 +81,37 @@
 	}
 
 	async function artworkSection(subjectId, type, mnemonic, page) {
-        console.log(`artworkSection ${subjectId} ${type} ${mnemonic}`);
+        //console.log(`artworkSection ${subjectId} ${type} ${mnemonic}`);
 		const fullType = folderNames[type];
 		const isItemInfo = page === 'itemPage';
 		const useThumbnail = isItemInfo ? USE_THUMBNAIL_FOR_ITEMINF : USE_THUMBNAIL_FOR_REVIEWS;
 
-        // Note: there may still be a race condition here that occasionally causes a section
-        // not to update on navigation. Haven't been able to reproduce it on latest code though.
-        // Comment out or remove console.log calls in next commit.
         while (true) {
             const noteFrame = getNoteFrame(mnemonic);
-            console.log(`${mnemonic} noteFrame preload outerHTML ${noteFrame.outerHTML}`);
-            await noteFrame.loaded;
+            if (noteFrame) {
+                //console.log(`${mnemonic} noteFrame preload outerHTML ${noteFrame.outerHTML}`);
+                if (noteFrame.loaded)
+                    await noteFrame.loaded;
 
-            if (noteFrame.complete) {
-                const subjectIdRegex = /subject_id=(\d+)/;
-                const subjectMatch = noteFrame.src.match(subjectIdRegex);
-                console.log(`${mnemonic} noteFrame is loaded, subjectMatch ${subjectMatch[1]} outerHTML ${noteFrame.outerHTML}`);
-                if (subjectMatch && subjectMatch[1] == subjectId) {
-                    console.log(`subject match on ${subjectId}, breaking`);
-                    break;
+                if (noteFrame.complete) {
+                    const subjectIdRegex = /subject_id=(\d+)/;
+                    const subjectMatch = noteFrame.src.match(subjectIdRegex);
+                    //console.log(`${mnemonic} noteFrame is loaded, subjectMatch ${subjectMatch[1]} outerHTML ${noteFrame.outerHTML}`);
+                    if (subjectMatch && subjectMatch[1] == subjectId) {
+                        // Expected subject is loaded so we can continue
+                        //console.log(`subject match on ${subjectId}, breaking`);
+                        break;
+                    } else {
+                        // Note frame has outdated subject, need to wait for new one to load
+                        //console.log(`subject mismatch on ${subjectId} != ${subjectMatch[1]}, awaiting frame-load`);
+                    }
                 } else {
-                    console.log(`subject mismatch on ${subjectId} != ${subjectMatch[1]}, awaiting frame-load`);
+                    // Note frame has not completed loading, need to wait
+                    //console.log(`${mnemonic} noteFrame is not complete, awaiting frame-load`);
                 }
             } else {
-                console.log(`${mnemonic} noteFrame is not complete, awaiting frame-load`);
+                // Note frame has not been added yet, need to wait
+                //console.log(`${mnemonic} noteFrame is not found, awaiting frame-load`);
             }
             await new Promise(resolve => document.addEventListener('turbo:frame-load', resolve, {once: true}));
         }
