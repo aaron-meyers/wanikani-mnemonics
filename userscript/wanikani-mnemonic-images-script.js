@@ -3,7 +3,7 @@
 // @namespace    aimnemonicimages
 // @version      1.8
 // @description  Adds AI images to radical, kanji, and vocabulary mnemonics.
-// @author       Sinyaven (modified by saraqael)
+// @author       Sinyaven (modified by saraqael, aaron-meyers)
 // @license      MIT-0
 // @match        https://www.wanikani.com/*
 // @match        https://preview.wanikani.com/*
@@ -35,13 +35,13 @@
 		kanaVocabulary: 'KanaVocabulary',
 	}
 
-	function getUrl(wkId, type, mnemonic, thumb = false) {
-        const urlFromNote = getUrlFromNote(mnemonic);
-        return urlFromNote ? urlFromNote :
-		    'https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png');
+	function getUrls(wkId, type, mnemonic, thumb = false) {
+        const urlsFromNote = getUrlsFromNote(mnemonic);
+        return urlsFromNote ? urlsFromNote :
+		    ['https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png')];
 	}
 
-    function getUrlFromNote(mnemonic) {
+    function getUrlsFromNote(mnemonic) {
         var noteElementName = null;
         switch (mnemonic) {
             case 'Meaning':
@@ -60,13 +60,16 @@
             return null;
         }
 
-        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/;
-        const m = note.match(imageUrlRegex);
-        return m ? m[0] : null;
+        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
+        if (!note.match(imageUrlRegex)) {
+            return null;
+        }
+        return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
     }
 
 	function init() {
         // wait to init until turbo-frame elements are loaded
+        // TODO - still debugging this for in-page navigation case (turbo:load is called again)
         document.addEventListener("turbo:load", async (event) => {
             wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
             wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
@@ -78,21 +81,25 @@
 		const isItemInfo = page === 'itemPage';
 		const useThumbnail = isItemInfo ? USE_THUMBNAIL_FOR_ITEMINF : USE_THUMBNAIL_FOR_REVIEWS;
 
-		const imageUrl = getUrl(subjectId, fullType, mnemonic, useThumbnail); // get url (thumbnail in reviews and lessons)
+		const imageUrls = getUrls(subjectId, fullType, mnemonic, useThumbnail); // get url (thumbnail in reviews and lessons)
 
-		const image = document.createElement("img"); // image loading
-		if (!(await new Promise(res => {
-			image.onload = () => res(true);
-			image.onerror = () => res(false);
-			image.src = imageUrl;
-		}))) return null;
+        var div = document.createElement("div");
+        for (const imageUrl of imageUrls) {
+            const image = document.createElement("img"); // image loading
+            if (!(await new Promise(res => {
+                image.onload = () => res(true);
+                image.onerror = () => res(false);
+                image.src = imageUrl;
+            }))) return null;
 
-		if (ENABLE_RESIZE_BY_DRAGGING) {
-			const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
-			makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
-			addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
-		}
-		return image;
+            if (ENABLE_RESIZE_BY_DRAGGING) {
+                const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
+                makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
+                addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
+            }
+            div.appendChild(image);
+        }
+		return div;
 	}
 
 	function makeMaxResizable(element, currentMax, lowerBound = 200) {
