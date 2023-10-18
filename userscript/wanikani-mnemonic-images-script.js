@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WaniKani AI Mnemonic Images
 // @namespace    aimnemonicimages
-// @version      1.8
+// @version      1.9
 // @description  Adds AI images to radical, kanji, and vocabulary mnemonics.
 // @author       Sinyaven (modified by saraqael, aaron-meyers)
 // @license      MIT-0
@@ -36,104 +36,105 @@
 	}
 
 	function getUrls(wkId, type, mnemonic, thumb = false) {
-        const urlsFromNote = getUrlsFromNote(mnemonic);
-        return urlsFromNote ? urlsFromNote :
-		    ['https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png')];
+		// Prefer images specified in user notes if any
+		const urlsFromNote = getUrlsFromNote(mnemonic);
+		return urlsFromNote ? urlsFromNote :
+			['https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png')];
 	}
 
-    function getUrlsFromNote(mnemonic) {
-        const noteFrame = getNoteFrame(mnemonic);
-        if (!noteFrame) {
-            return null;
-        }
-        const note = noteFrame.innerText;
-        if (!note) {
-            return null;
-        }
+	function getUrlsFromNote(mnemonic) {
+		const noteFrame = getNoteFrame(mnemonic);
+		if (!noteFrame) {
+			return null;
+		}
+		const note = noteFrame.innerText;
+		if (!note) {
+			return null;
+		}
 
-        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
-        if (!note.match(imageUrlRegex)) {
-            return null;
-        }
-        return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
-    }
+		const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
+		if (!note.match(imageUrlRegex)) {
+			return null;
+		}
+		return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
+	}
 
-    function getNoteFrame(mnemonic) {
-        var noteElementName = null;
-        switch (mnemonic) {
-            case 'Meaning':
-                noteElementName = 'user_meaning_note';
-                break;
-            case 'Reading':
-                noteElementName = 'user_reading_note';
-                break;
-        }
-        if (!noteElementName) {
-            return null;
-        }
+	function getNoteFrame(mnemonic) {
+		var noteElementName = null;
+		switch (mnemonic) {
+			case 'Meaning':
+				noteElementName = 'user_meaning_note';
+				break;
+			case 'Reading':
+				noteElementName = 'user_reading_note';
+				break;
+		}
+		if (!noteElementName) {
+			return null;
+		}
 
-        return window.document.getElementById(noteElementName);
-    }
+		return window.document.getElementById(noteElementName);
+	}
 
 	function init() {
-        wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
-        wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
+		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
+		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
 	}
 
 	async function artworkSection(subjectId, type, mnemonic, page) {
-        //console.log(`artworkSection ${subjectId} ${type} ${mnemonic}`);
+		//console.log(`artworkSection ${subjectId} ${type} ${mnemonic}`);
 		const fullType = folderNames[type];
 		const isItemInfo = page === 'itemPage';
 		const useThumbnail = isItemInfo ? USE_THUMBNAIL_FOR_ITEMINF : USE_THUMBNAIL_FOR_REVIEWS;
 
-        while (true) {
-            const noteFrame = getNoteFrame(mnemonic);
-            if (noteFrame) {
-                //console.log(`${mnemonic} noteFrame preload outerHTML ${noteFrame.outerHTML}`);
-                if (noteFrame.loaded)
-                    await noteFrame.loaded;
+		while (true) {
+			const noteFrame = getNoteFrame(mnemonic);
+			if (noteFrame) {
+				//console.log(`${mnemonic} noteFrame preload outerHTML ${noteFrame.outerHTML}`);
+				if (noteFrame.loaded)
+					await noteFrame.loaded;
 
-                if (noteFrame.complete) {
-                    const subjectIdRegex = /subject_id=(\d+)/;
-                    const subjectMatch = noteFrame.src.match(subjectIdRegex);
-                    //console.log(`${mnemonic} noteFrame is loaded, subjectMatch ${subjectMatch[1]} outerHTML ${noteFrame.outerHTML}`);
-                    if (subjectMatch && subjectMatch[1] == subjectId) {
-                        // Expected subject is loaded so we can continue
-                        //console.log(`subject match on ${subjectId}, breaking`);
-                        break;
-                    } else {
-                        // Note frame has outdated subject, need to wait for new one to load
-                        //console.log(`subject mismatch on ${subjectId} != ${subjectMatch[1]}, awaiting frame-load`);
-                    }
-                } else {
-                    // Note frame has not completed loading, need to wait
-                    //console.log(`${mnemonic} noteFrame is not complete, awaiting frame-load`);
-                }
-            } else {
-                // Note frame has not been added yet, need to wait
-                //console.log(`${mnemonic} noteFrame is not found, awaiting frame-load`);
-            }
-            await new Promise(resolve => document.addEventListener('turbo:frame-load', resolve, {once: true}));
-        }
+				if (noteFrame.complete) {
+					const subjectIdRegex = /subject_id=(\d+)/;
+					const subjectMatch = noteFrame.src.match(subjectIdRegex);
+					//console.log(`${mnemonic} noteFrame is loaded, subjectMatch ${subjectMatch[1]} outerHTML ${noteFrame.outerHTML}`);
+					if (subjectMatch && subjectMatch[1] == subjectId) {
+						// Expected subject is loaded so we can continue
+						//console.log(`subject match on ${subjectId}, breaking`);
+						break;
+					} else {
+						// Note frame has outdated subject, need to wait for new one to load
+						//console.log(`subject mismatch on ${subjectId} != ${subjectMatch[1]}, awaiting frame-load`);
+					}
+				} else {
+					// Note frame has not completed loading, need to wait
+					//console.log(`${mnemonic} noteFrame is not complete, awaiting frame-load`);
+				}
+			} else {
+				// Note frame has not been added yet, need to wait
+				//console.log(`${mnemonic} noteFrame is not found, awaiting frame-load`);
+			}
+			await new Promise(resolve => document.addEventListener('turbo:frame-load', resolve, { once: true }));
+		}
 
 		const imageUrls = getUrls(subjectId, fullType, mnemonic, useThumbnail); // get url (thumbnail in reviews and lessons)
 
-        var div = document.createElement("div");
-        for (const imageUrl of imageUrls) {
-            const image = document.createElement("img"); // image loading
-            if (!(await new Promise(res => {
-                image.onload = () => res(true);
-                image.onerror = () => res(false);
-                image.src = imageUrl;
-            }))) return null;
+		var div = document.createElement("div");
+		for (const imageUrl of imageUrls) {
+			const image = document.createElement("img"); // image loading
+			if (!(await new Promise(res => {
+				image.onload = () => res(true);
+				image.onerror = () => res(false);
+				image.src = imageUrl;
+			}))) return null;
 
-            if (ENABLE_RESIZE_BY_DRAGGING) {
-                const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
-                makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
-                addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
-            }
-            div.appendChild(image);
-        }
+			if (ENABLE_RESIZE_BY_DRAGGING) {
+				const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
+				makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
+				addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
+			}
+			div.appendChild(image);
+		}
 		return div;
 	}
 
