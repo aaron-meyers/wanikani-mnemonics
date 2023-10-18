@@ -42,6 +42,23 @@
 	}
 
     function getUrlsFromNote(mnemonic) {
+        const noteFrame = getNoteFrame(mnemonic);
+        if (!noteFrame) {
+            return null;
+        }
+        const note = noteFrame.innerText;
+        if (!note) {
+            return null;
+        }
+
+        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
+        if (!note.match(imageUrlRegex)) {
+            return null;
+        }
+        return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
+    }
+
+    function getNoteFrame(mnemonic) {
         var noteElementName = null;
         switch (mnemonic) {
             case 'Meaning':
@@ -55,31 +72,43 @@
             return null;
         }
 
-        const note = window.document.getElementById(noteElementName).innerText;
-        if (!note) {
-            return null;
-        }
-
-        const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
-        if (!note.match(imageUrlRegex)) {
-            return null;
-        }
-        return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
+        return window.document.getElementById(noteElementName);
     }
 
 	function init() {
-        // wait to init until turbo-frame elements are loaded
-        // TODO - still debugging this for in-page navigation case (turbo:load is called again)
-        document.addEventListener("turbo:load", async (event) => {
-            wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
-            wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
-        });
+        wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
+        wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
 	}
 
 	async function artworkSection(subjectId, type, mnemonic, page) {
+        console.log(`artworkSection ${subjectId} ${type} ${mnemonic}`);
 		const fullType = folderNames[type];
 		const isItemInfo = page === 'itemPage';
 		const useThumbnail = isItemInfo ? USE_THUMBNAIL_FOR_ITEMINF : USE_THUMBNAIL_FOR_REVIEWS;
+
+        // Note: there may still be a race condition here that occasionally causes a section
+        // not to update on navigation. Haven't been able to reproduce it on latest code though.
+        // Comment out or remove console.log calls in next commit.
+        while (true) {
+            const noteFrame = getNoteFrame(mnemonic);
+            console.log(`${mnemonic} noteFrame preload outerHTML ${noteFrame.outerHTML}`);
+            await noteFrame.loaded;
+
+            if (noteFrame.complete) {
+                const subjectIdRegex = /subject_id=(\d+)/;
+                const subjectMatch = noteFrame.src.match(subjectIdRegex);
+                console.log(`${mnemonic} noteFrame is loaded, subjectMatch ${subjectMatch[1]} outerHTML ${noteFrame.outerHTML}`);
+                if (subjectMatch && subjectMatch[1] == subjectId) {
+                    console.log(`subject match on ${subjectId}, breaking`);
+                    break;
+                } else {
+                    console.log(`subject mismatch on ${subjectId} != ${subjectMatch[1]}, awaiting frame-load`);
+                }
+            } else {
+                console.log(`${mnemonic} noteFrame is not complete, awaiting frame-load`);
+            }
+            await new Promise(resolve => document.addEventListener('turbo:frame-load', resolve, {once: true}));
+        }
 
 		const imageUrls = getUrls(subjectId, fullType, mnemonic, useThumbnail); // get url (thumbnail in reviews and lessons)
 
