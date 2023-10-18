@@ -87,6 +87,7 @@
 		const isItemInfo = page === 'itemPage';
 		const useThumbnail = isItemInfo ? USE_THUMBNAIL_FOR_ITEMINF : USE_THUMBNAIL_FOR_REVIEWS;
 
+		// Wait until note frame is loaded so we can try to load images from notes
 		while (true) {
 			const noteFrame = getNoteFrame(mnemonic);
 			if (noteFrame) {
