@@ -52,6 +52,7 @@
 			return null;
 		}
 
+		// TODO: rewrite URLs from the project to respect thumbnail parameter (replace .png with -thumb.jpg)
 		const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
 		if (!note.match(imageUrlRegex)) {
 			return null;
@@ -77,6 +78,19 @@
 	}
 
 	function init() {
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = 'https://cdn.jsdelivr.net/gh/aaron-meyers/wanikani-mnemonics/userscript/carousel.min.css';
+		document.head.appendChild(link);
+
+		// TODO implement left/right navigation buttons for carousel, will require more js
+		// (consider getting this from github rather than inlining in this script)
+		//var script = document.createElement("script");
+		//script.setAttribute("type", "text/javascript");
+		//script.setAttribute("src", "TODO");
+		//document.head.appendChild(script);
+
 		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("meaning").append("Meaning Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Meaning', on));
 		wkItemInfo.forType("radical,kanji,vocabulary,kanaVocabulary").under("reading").append("Reading Mnemonic Image", ({ id, type, on }) => artworkSection(id, type, 'Reading', on));
 	}
@@ -120,23 +134,64 @@
 
 		const imageUrls = getUrls(subjectId, fullType, mnemonic, useThumbnail); // get url (thumbnail in reviews and lessons)
 
-		var div = document.createElement("div");
-		for (const imageUrl of imageUrls) {
-			const image = document.createElement("img"); // image loading
-			if (!(await new Promise(res => {
-				image.onload = () => res(true);
-				image.onerror = () => res(false);
-				image.src = imageUrl;
-			}))) return null;
+		if (imageUrls.length === 1) {
+			// Simple case for single image with support for resize
+			const imageUrl = imageUrls[0];
+
+			const image = await createAndLoadImg(imageUrl);
+			if (!image)
+				return null;
 
 			if (ENABLE_RESIZE_BY_DRAGGING) {
 				const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
 				makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
 				addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
 			}
-			div.appendChild(image);
+			return image;
+		} else {
+			// Multiple images, use a carousel
+			// Derived from https://nolanlawson.com/2019/02/10/building-a-modern-carousel-with-css-scroll-snap-smooth-scrolling-and-pinch-zoom/
+			const viewport = document.createElement("div");
+			viewport.className = "viewport";
+			const carouselFrame = document.createElement("div");
+			carouselFrame.className = "carousel-frame";
+			const carousel = document.createElement("div");
+			carousel.className = "carousel";
+			const scrollList = document.createElement("ul");
+			scrollList.className = "scroll";
+			carousel.appendChild(scrollList);
+			carouselFrame.appendChild(carousel);
+			viewport.appendChild(carouselFrame);
+
+			for (const imageUrl of imageUrls) {
+				const image = await createAndLoadImg(imageUrl);
+				if (!image)
+					continue;
+
+				image.className = "scroll-image";
+
+				const listItem = document.createElement("li");
+				listItem.className = "scroll-item-outer";
+				const itemDiv = document.createElement("div");
+				itemDiv.className = "scroll-item";
+				itemDiv.appendChild(image);
+				listItem.appendChild(itemDiv);
+				scrollList.appendChild(listItem);
+			}
+
+			return viewport;
 		}
-		return div;
+	}
+
+	async function createAndLoadImg(imageUrl) {
+		const image = document.createElement("img");
+		if (!(await new Promise(res => {
+			image.onload = () => res(true);
+			image.onerror = () => res(false);
+			image.src = imageUrl;
+		}))) return null;
+
+		return image;
 	}
 
 	function makeMaxResizable(element, currentMax, lowerBound = 200) {
