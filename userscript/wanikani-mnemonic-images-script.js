@@ -37,12 +37,12 @@
 
 	function getUrls(wkId, type, mnemonic, thumb = false) {
 		// Prefer images specified in user notes if any
-		const urlsFromNote = getUrlsFromNote(mnemonic);
+		const urlsFromNote = getUrlsFromNote(mnemonic, thumb);
 		return urlsFromNote ? urlsFromNote :
 			['https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png')];
 	}
 
-	function getUrlsFromNote(mnemonic) {
+	function getUrlsFromNote(mnemonic, thumb) {
 		const noteFrame = getNoteFrame(mnemonic);
 		if (!noteFrame) {
 			return null;
@@ -52,12 +52,18 @@
 			return null;
 		}
 
-		// TODO: rewrite URLs from the project to respect thumbnail parameter (replace .png with -thumb.jpg)
-		const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+)(\/)([^\s,]+\.(png|jpg|jpeg))/g;
+		const imageUrlRegex = /(http[s]?|[s]?ftp[s]?)(:\/\/)([^\s,]+\.(png|jpg|jpeg))/g;
 		if (!note.match(imageUrlRegex)) {
 			return null;
 		}
-		return [...note.matchAll(imageUrlRegex)].map(e => e[0]);
+		return [...note.matchAll(imageUrlRegex)].map(e => {
+			const url = new URL(e[0]);
+
+			// Respect thumbnail parameter for images from the community project
+			return (thumb && url.hostname === 'wk-mnemonic-images.b-cdn.net') ?
+				url.href.replace('.png', '-thumb.jpg') :
+				url.href;
+		});
 	}
 
 	function getNoteFrame(mnemonic) {
@@ -139,14 +145,14 @@
 			const imageUrl = imageUrls[0];
 
 			const image = await createAndLoadImg(imageUrl);
-			if (!image)
-				return null;
+			if (!image) return null;
 
 			if (ENABLE_RESIZE_BY_DRAGGING) {
 				const currentMax = parseInt(localStorage.getItem("AImnemonicMaxSize")) || 900;
 				makeMaxResizable(image, currentMax).afterResize(m => { localStorage.setItem("AImnemonicMaxSize", m); let e = new Event("storage"); e.key = "AImnemonicMaxSize"; e.newValue = m; dispatchEvent(e); });
 				addEventListener("storage", e => { if (e.key === "AImnemonicMaxSize") { image.style.maxWidth = `min(${e.newValue}px, 100%)`; image.style.maxHeight = e.newValue + "px"; } });
 			}
+
 			return image;
 		} else {
 			// Multiple images, use a carousel
@@ -165,8 +171,7 @@
 
 			for (const imageUrl of imageUrls) {
 				const image = await createAndLoadImg(imageUrl);
-				if (!image)
-					continue;
+				if (!image) continue;
 
 				image.className = "scroll-image";
 
