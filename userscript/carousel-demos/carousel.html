@@ -1,132 +1,35 @@
 <html>
 <head>
-    <style>
-:root {
-  --carousel-width: 600px;
-  --carousel-height: var(--carousel-width); /* calc(0.7 * var(--carousel-width));*/
-  --carousel-padding: 5px;
-}
-
-@media (max-width: 600px) {
-  :root {
-    --carousel-width: 95vw;
-  }
-}
-
-.viewport {
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  /*align-items: center;*/
-}
-
-.carousel-frame {
-  background: #fafafa;
-  padding: 10px;
-  border-radius: 3px;
-  border: 1px solid #ddd;
-  width: calc(var(--carousel-width) + (2 * var(--carousel-padding)));
-  height: calc(var(--carousel-height) + (2 * var(--carousel-padding)));
-}
-
-.carousel {
-  width: var(--carousel-width);
-  height: var(--carousel-height);
-}
-
-.scroll {
-  display: flex;
-  align-items: center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  width: 100%;
-  height: 100%;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.scroll::-webkit-scrollbar {
-  display: none;
-}
-
-ul.scroll {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.scroll-item-outer {
-  width: 100%;
-  height: 100%
-}
-
-.scroll-item {
-  width: var(--carousel-width);
-  height: 100%;
-}
-
-img.scroll-image {
-  object-fit: contain;
-  width: 100%;
-  height: 100%;
-}
-
-@supports (scroll-snap-align: start) {
-  /* modern scroll snap points */
-  .scroll {
-    scroll-snap-type: x mandatory;
-  }
-  .scroll-item-outer {
-    scroll-snap-align: center;
-  }
-}
-
-@supports not (scroll-snap-align: start) {
-  /* old scroll snap points spec */
-  .scroll {
-    -webkit-scroll-snap-type: mandatory;
-            scroll-snap-type: mandatory;
-    -webkit-scroll-snap-destination: 0 50%;
-            scroll-snap-destination: 0 50%;
-    -webkit-scroll-snap-points-x: repeat(100%);
-            scroll-snap-points-x: repeat(100%);
-  }
-  
-  .scroll-item-outer {
-    scroll-snap-coordinate: 0 0;
-  }
-}
-    </style>
+  <link rel="stylesheet" type="text/css" href="../carousel.css"/>
 </head>
 <body>
-<div class="viewport">
-  <div class="carousel-frame">
-    <div class="carousel">
-      <ul class="scroll">
-        <li class="scroll-item-outer">
-          <div class="scroll-item">
-            <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km7_%E5%BB%BA-20231020T004632101Z.png"/>
-          </div>
-        </li>
-        <li class="scroll-item-outer">
-          <div class="scroll-item">
-            <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km5_%E5%BB%BA-20231018T081831361Z.png"/>
-          </div>
-        </li>
-        <li class="scroll-item-outer">
-          <div class="scroll-item">
-            <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km6_%E5%BB%BA-20231018T081932741Z.png"/>
-          </div>
-        </li>
-        <li class="scroll-item-outer">
-          <div class="scroll-item">
-            <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_kb4_%E5%BB%BA-20231015T150127980Z.png"/>
-          </div>
-        </li>
-      </ul>
+  <div class="viewport">
+    <div class="carousel-frame">
+      <div class="carousel">
+        <ul class="scroll">
+          <li class="scroll-item-outer">
+            <div class="scroll-item">
+              <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km7_%E5%BB%BA-20231020T004632101Z.png"/>
+            </div>
+          </li>
+          <li class="scroll-item-outer">
+            <div class="scroll-item">
+              <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km5_%E5%BB%BA-20231018T081831361Z.png"/>
+            </div>
+          </li>
+          <li class="scroll-item-outer">
+            <div class="scroll-item">
+              <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_km6_%E5%BB%BA-20231018T081932741Z.png"/>
+            </div>
+          </li>
+          <li class="scroll-item-outer">
+            <div class="scroll-item">
+              <img class="scroll-image" src="https://wk-mnemonic-images.b-cdn.net/Kanji/946_kb4_%E5%BB%BA-20231015T150127980Z.png"/>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
-</div>
 </body>
 </html>
