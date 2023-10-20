@@ -37,12 +37,12 @@
 
 	function getUrls(wkId, type, mnemonic, thumb = false) {
 		// Prefer images specified in user notes if any
-		const urlsFromNote = getUrlsFromNote(mnemonic, thumb);
+		const urlsFromNote = extractUrlsFromNote(mnemonic, thumb);
 		return urlsFromNote ? urlsFromNote :
 			['https://wk-mnemonic-images.b-cdn.net/' + type + '/' + mnemonic + '/' + wkId + (thumb ? '-thumb.jpg' : '.png')];
 	}
 
-	function getUrlsFromNote(mnemonic, thumb) {
+	function extractUrlsFromNote(mnemonic, thumb) {
 		const noteFrame = getNoteFrame(mnemonic);
 		if (!noteFrame) {
 			return null;
@@ -56,6 +56,35 @@
 		if (!note.match(imageUrlRegex)) {
 			return null;
 		}
+
+		// Collapse the actual image URLs in the visible note to reduce visual clutter.
+		// This happens only once so editing the note (even if no changes are made) will
+		// restore the original URLs. This seems to be reasonable behavior.
+		const textContainer = noteFrame.getElementsByClassName('user-note__text')[0];
+		if (textContainer) {
+			var imageOrdinal = 1;
+			var reducedPrev = false;
+			for (var i = 0; i < textContainer.childNodes.length; i++) {
+				const n = textContainer.childNodes[i];
+				if (n.nodeType === Node.TEXT_NODE) {
+					// Replace image URL with [imageN]
+					const original = n.textContent;
+					const replaced = original.replace(imageUrlRegex, `[image${imageOrdinal}] `);
+					if (original !== replaced) {
+						n.textContent = replaced;
+						imageOrdinal++;
+						reducedPrev = true;
+						continue;
+					}
+				} else if (reducedPrev && n.nodeType === Node.ELEMENT_NODE && n.tagName === 'BR') {
+					// Remove the following line break so sequence of image URLs will collapse to single line
+					n.remove();
+					i--;
+				}
+				reducedPrev = false;
+			}
+		}
+
 		return [...note.matchAll(imageUrlRegex)].map(e => {
 			const url = new URL(e[0]);
 
