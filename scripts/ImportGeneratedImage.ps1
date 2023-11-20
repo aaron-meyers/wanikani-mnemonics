@@ -3,9 +3,13 @@ param(
     [String[]]
     $Path = @('*.jpg','*.png'),
 
-    [Parameter(Mandatory=$true)]
+    [Parameter()]
     [String]
     $Prompt,
+
+    [Parameter()]
+    [Switch]
+    $PromptFromClipboard,
 
     [Parameter(Mandatory=$true)]
     [String]
@@ -18,6 +22,15 @@ param(
 
 if (-not (Get-Command exiftool -ErrorAction SilentlyContinue)) {
     throw "Requires exiftool"
+}
+
+if (-not $Prompt -and $PromptFromClipboard) {
+    $Prompt = Get-Clipboard
+    Write-Host "Prompt: $Prompt"
+}
+
+if (-not $Prompt) {
+    throw "No prompt specified; nothing to do"
 }
 
 $Destination = Convert-Path $Destination
